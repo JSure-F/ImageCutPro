@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>test</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="600" height="600" tabindex="0"></canvas>
+    <input id="handle" type="button" value="处理图片" />
+    <input id="create" type="button" value="生成图片" />
+    <button id="printPos" onclick=PrintPos()>打印坐标</button>
+    <button id="clearPosNum" onclick=clearPosNum()>清空坐标数据</button>
+    <button id="test" onclick=doInput()>test</button>
+    <!-- <canvas id="canvas2" width="600" height="600"></canvas> -->
+    <div id="result"></div>
+</body>
+<script>
+    var pos_x = new Array();
+    var pos_y = new Array();
+    var posNum = 0;
+    // 无效
+    canvas.addEventListener('keydown', (e) => {
+        var c = document.getElementById("canvas");
+        var ctx = c.getContext("2d");
+        if (posNum > 1) {
+            ctx.moveTo(pos_x[posNum - 1], pos_y[posNum - 1]);
+            ctx.lineTo(pos_x[0], pos_y[0]);
+            ctx.strokeStyle = "red";
+            ctx.stroke();
+        }
+    })
+    canvas.addEventListener("click", function(event) {
+        getMousePos(canvas, event);
+        drawImageToLine();
+    });
+
+    // canvas2.addEventListener("click", function(event) {
+    //     getMousePos2(canvas2, event);
+    // });
+
+
+    //测试键盘监听模块，当键盘按下时返回相应的键盘值
+    // function displayResult() {
+    //     var x;
+    //     if (window.event) // IE8 及更早IE版本
+    //     {
+    //         x = event.keyCode;
+    //     } else if (event.which) // IE9/Firefox/Chrome/Opera/Safari
+    //     {
+    //         x = event.which;
+    //     }
+    //     var keychar = String.fromCharCode(x);
+    //     alert("按键 " + keychar + " 被按下");
+    // }
+
+    function drawImageToLine() {
+        var c = document.getElementById("canvas");
+        var ctx = c.getContext("2d");
+        if (posNum > 1) {
+            ctx.moveTo(pos_x[posNum - 2], pos_y[posNum - 2]);
+            ctx.lineTo(pos_x[posNum - 1], pos_y[posNum - 1]);
+            ctx.strokeStyle = "red";
+            ctx.stroke();
+        }
+
+    }
+
+    function doInput() {
+        var inputObj = document.createElement('input');
+        inputObj.addEventListener('change', readFile, false);
+        inputObj.type = 'file';
+        inputObj.accept = 'image/*';
+        inputObj.id = "onloads";
+        inputObj.click();
+    }
+
+    function readFile() {
+        var file = this.files[0]; //获取input输入的图片
+        if (!/image\/\w+/.test(file.type)) {
+            alert("请确保文件为图像类型");
+            return false;
+        } //判断是否图片，在移动端由于浏览器对调用file类型处理不同，虽然加了accept = 'image/*'，但是还要再次判断
+        var reader = new FileReader();
+        reader.readAsDataURL(file); //转化成base64数据类型
+        reader.onload = function(e) {
+            drawToCanvas(this.result);
+        }
+    }
+
+    function drawToCanvas(imgData) {
+        var cvs = document.getElementById('canvas');
+        var ctx = cvs.getContext('2d');
+        var img = new Image;
+        img.src = imgData;
+        img.onload = function() { //必须onload之后再画
+            // ctx.drawImage(img, 0, 0, 300, 400); //此处不再给加载的图片的长宽进行设限
+            ctx.drawImage(img, 0, 0);
+            strDataURI = cvs.toDataURL(); //获取canvas base64数据
+        }
+    }
+
+    function getMousePos(canvas, event) {
+        var rect = canvas.getBoundingClientRect();
+        var x = event.clientX - rect.left * (canvas.width / rect.width);
+        var y = event.clientY - rect.top * (canvas.height / rect.height);
+        // console.log(event.clientY);
+        // console.log(rect.top);
+        pos_x[posNum] = x;
+        pos_y[posNum] = y;
+        // pos_x.push(x);
+        // pos_y.push(y);
+        posNum++;
+        console.log("x:" + x + ",y:" + y);
+    }
+
+    // function getMousePos2(canvas2, event) {
+    //     var rect = canvas2.getBoundingClientRect();
+    //     var x = event.clientX - rect.left * (canvas2.width / rect.width);
+    //     var y = event.clientY - rect.top * (canvas2.height / rect.height);
+    //     // console.log(event.clientY);
+    //     // console.log(rect.top);
+    //     pos_x.push(x);
+    //     pos_y.push(y);
+    //     console.log("x:" + x + ",y:" + y);
+    // }
+
+    function clearPosNum() {
+        var x = new Array();
+        pos_x = pos_x_x;
+        pos_y = pos_x_x;
+        posNum = 0;
+    }
+
+    function test() {
+        var img = document.getElementById("upload").value;
+        console.log(img);
+    }
+
+    function PrintPos() {
+        console.log(pos_x);
+        console.log(pos_y);
+    }
+    window.onload = function() {
+        var canvas = document.getElementById("canvas"), //获取Canvas画布对象
+            context = canvas.getContext('2d'); //获取2D上下文对象，大多数Canvas API均为此对象方法
+        var image = new Image(); //定义一个图片对象
+        image.src = "./123.jpg";
+        image.onload = function() { //此处必须注意！后面所有操作均需在图片加载成功后执行，否则图片将处理无效
+            context.drawImage(image, 0, 0); //将图片从Canvas画布的左上角(0,0)位置开始绘制，大小默认为图片实际大小
+            var handle = document.getElementById("handle");
+            var create = document.getElementById("create");
+            handle.onclick = function() { // 单击“处理图片”按钮，处理图片
+                var imgData = context.getImageData(0, 0, canvas.width, canvas.height); //获取图片数据对象
+                var data = imgData.data; //获取图片数据数组，该数组中每个像素用4个元素来保存，分别表示红、绿、蓝和透明度值
+                console.log(data);
+                var average = 0;
+                // for (var i = 0; i < data.length; i += 4) {
+                //     average = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3); //将红、绿、蓝色值求平均值后得到灰度值
+                //     data[i] = data[i + 1] = data[i + 2] = average;
+                //     //将每个像素点的色值重写
+                // }
+                var flag = true;
+                for (var i = 0; i < data.length; i += 4) {
+                    if (data[i] == data[i + 1] == data[i + 2] == 0) {
+                        flag = false;
+                    }
+                    if (!flag) {
+                        data[i] = data[i + 1] = data[i + 2] = 255;
+                    }
+                }
+                console.log(data.length);
+                imgData.data = data;
+                context.putImageData(imgData, 0, 0); //将处理后的图像数据重写至Canvas画布，此时画布中图像变为黑白色
+            };
+            create.onclick = function() { // 单击“生成图片”按钮，导出图片
+                var imgSrc = canvas.toDataURL(); //获取图片的DataURL
+                var newImg = new Image();
+                var result = document.getElementById("result");
+                newImg.src = imgSrc; //将图片路径赋值给src
+                result.innerHTML = '';
+                result.appendChild(newImg);
+            };
+        };
+    };
+</script>
+
+</html>

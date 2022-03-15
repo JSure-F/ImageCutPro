@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8" />
+    <script>
+        document.write("按下B键返回");
+
+        function keyCheck(e) {
+            var keynum;
+            var keychar;
+            if (window.event) { //IE浏览器下的事件
+                keynum = e.keyCode;
+            } else { //非IE浏览器下的事件
+                keynum = e.which;
+            }
+            keychar = String.fromCharCode(keynum);
+            if (keychar == "B") {
+                alert("返回上一个画面");
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+    <input type="text" οnkeydοwn="keyCheck(event)" />
+</body>
+
+</html>
